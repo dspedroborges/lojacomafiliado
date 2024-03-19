@@ -1,0 +1,87 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  AFFILIATE
+}
+
+model User {
+  id        String     @id @default(uuid())
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  username  String     @unique
+  password  String
+  role      UserRole   @default(USER)
+  admin     Admin?
+  affiliate Affiliate?
+}
+
+model Admin {
+  id     String @id @default(uuid())
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String @unique
+}
+
+model Affiliate {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  name      String
+  nickname  String   @unique
+  pix       String   @unique
+  tel       String   @unique
+  email     String   @unique
+  comission Float
+
+  payments      Payment[]
+  solicitations Solicitation[]
+}
+
+model Payment {
+  id               String     @id @default(uuid())
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  affiliate        Affiliate? @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  affiliateId      String?
+  products         String[]
+  amounts          Int[]
+  prices           Float[]
+  affiliatePaid    Boolean    @default(false)
+  paymentConfirmed Boolean    @default(false)
+  name             String
+  email            String
+  tel              String
+  cpf              String
+  cep              String
+  state            String
+  city             String
+  neighborhood     String
+  address          String
+  number           String
+  complement       String     @default("")
+
+  trackingCode String  @default("")
+  sent         Boolean @default(false)
+}
+
+model Solicitation {
+  id          Int       @id @default(autoincrement())
+  createdAt   DateTime  @default(now())
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  affiliateId String
+  paid        Boolean   @default(false)
+  comission   Float     
+}
